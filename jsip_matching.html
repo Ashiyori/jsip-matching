@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSIP Lounge — Decarbonization Matching</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f0e;
+    --surface: #141714;
+    --surface2: #1b1f1b;
+    --border: rgba(255,255,255,0.07);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.12);
+    --green-mid: rgba(74,222,128,0.25);
+    --text: #e8ece8;
+    --muted: #7a8a7a;
+    --score-high: #4ade80;
+    --score-med: #facc15;
+    --score-low: #94a3b8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 56px 32px 40px;
+    max-width: 900px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 400;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+  .hero h1 em { font-style: italic; color: var(--green); }
+  .hero-sub {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 520px;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--green); }
+  .stat-label { font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* CONTROLS */
+  .controls {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-wrap {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+  }
+  input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px 10px 36px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--green); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.18s;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.02em;
+  }
+  .filter-btn:hover { border-color: var(--green); color: var(--text); }
+  .filter-btn.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+  /* GRID */
+  .grid {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 32px 64px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    animation: fadeIn 0.4s ease both;
+  }
+  .card:hover { border-color: rgba(74,222,128,0.3); transform: translateY(-2px); }
+  .card.hidden { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-head {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 2px;
+    line-height: 1.2;
+  }
+  .card-company { font-size: 12px; color: var(--green); margin-bottom: 4px; }
+  .card-role { font-size: 11px; color: var(--muted); }
+
+  .card-tags {
+    padding: 12px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+    min-height: 44px;
+  }
+  .tag {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid rgba(74,222,128,0.2);
+  }
+  .tag.type-tag {
+    background: rgba(148,163,184,0.08);
+    color: var(--muted);
+    border-color: rgba(148,163,184,0.15);
+  }
+
+  .card-matches { padding: 12px 18px 16px; }
+  .matches-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .match-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .match-row:last-child { border-bottom: none; }
+  .match-rank {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--border);
+    min-width: 18px;
+    text-align: center;
+  }
+  .match-info { flex: 1; min-width: 0; }
+  .match-name { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .match-co { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .match-score {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 4px;
+    min-width: 36px;
+    text-align: center;
+  }
+  .score-high { background: rgba(74,222,128,0.15); color: var(--score-high); }
+  .score-med  { background: rgba(250,204,21,0.12); color: var(--score-med); }
+  .score-low  { background: rgba(148,163,184,0.1); color: var(--score-low); }
+
+  /* EMPTY */
+  .empty {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 64px 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* LEGEND */
+  .legend {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 32px 32px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 2px;
+  }
+
+  @media (max-width: 600px) {
+    .hero, .controls, .grid { padding-left: 16px; padding-right: 16px; }
+    .hero { padding-top: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">JSIP Lounge · April 2026</div>
+  <h1>Decarbonization<br><em>Networking</em> Matches</h1>
+  <p class="hero-sub">Find the people you should meet today. Matches are calculated based on your decarbonization interests and role type.</p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">52</span><span class="stat-label">Attendees</span></div>
+    <div class="stat"><span class="stat-num">156</span><span class="stat-label">Curated matches</span></div>
+    <div class="stat"><span class="stat-num">3</span><span class="stat-label">Matches per person</span></div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search" placeholder="Search by name or company…">
+  </div>
+  <div class="filter-btns">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="Executive">Executive</button>
+    <button class="filter-btn" data-filter="Investor">Investor</button>
+    <button class="filter-btn" data-filter="Sustainability">Sustainability</button>
+    <button class="filter-btn" data-filter="Technical">Technical</button>
+    <button class="filter-btn" data-filter="BizDev">BizDev</button>
+  </div>
+</div>
+
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot" style="background:#4ade80"></span>Score 60+ — Strong match</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#facc15"></span>Score 30–59 — Good match</span>
+  <span class="legend-item"><span class="legend-dot" style="background:#94a3b8"></span>Score &lt;30 — General networking</span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const DATA = [{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","type":"Executive","interests":"① Implementing | ② PoC/Partner search","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ①,②; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ①,②; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ①,②; Diverse roles"}]},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","type":"Other","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director ","score":10,"reason":"Diverse roles"},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":10,"reason":"Diverse roles"}]},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","type":"BizDev","interests":"② PoC/Partner search | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"}]},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","type":"Other","interests":"⑥ Broad perspective","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ⑥; Diverse roles"},{"name":"maebashi satoru","company":"ntt docomo asia","role":"ceo","score":25,"reason":"Shared: ⑥; Diverse roles"},{"name":"Miranda Derek","company":"Oil Major","role":"LNG Freight Trader","score":15,"reason":"Shared: ⑥"}]},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","type":"Executive","interests":"② PoC/Partner search | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"}]},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","type":"Executive","interests":"① Implementing | ② PoC/Partner search | ③ Investment/Partnership","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ①,②,③; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ①,②,③; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":95,"reason":"Complementary interests; Shared: ①,②,③; Diverse roles"}]},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","type":"Technical","interests":"① Implementing | ② PoC/Partner search | ③ Investment/Partnership | ④ Info gathering","matches":[{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":100,"reason":"Complementary interests; Shared: ①,②,③,④"}]},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","type":"Technical","interests":"① Implementing | ② PoC/Partner search | ③ Investment/Partnership | ④ Info gathering | ⑤ Future reference | ⑥ Broad perspective","matches":[{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Lim Finian","company":"Trinasolar","role":"Head of Public Affairs","score":110,"reason":"Complementary interests; Shared: ①,④,⑤,⑥; Diverse roles"}]},{"name":"Too Jun Lin","company":"Flo Energy","role":"Renewables Development Lead","type":"Sustainability","interests":"④ Info gathering | ⑤ Future reference","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":40,"reason":"Shared: ④,⑤; Diverse roles"},{"name":"Kawazoe Takashi","company":"Mars Growth Capital","role":"—","score":40,"reason":"Shared: ④,⑤; Diverse roles"},{"name":"Lim Finian","company":"Trinasolar","role":"Head of Public Affairs","score":40,"reason":"Shared: ④,⑤; Diverse roles"}]},{"name":"鈴木 健吾","company":"Gobi Partners","role":"Venture Partner","type":"Investor","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"}]},{"name":"Low Spencer","company":"Google","role":"Head, Regional Sustainability APAC","type":"Sustainability","interests":"① Implementing","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Ng Kelvin","company":"Green Bridge Partners","role":"Managing Partner","type":"Executive","interests":"","matches":[{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","type":"Other","interests":"① Implementing | ② PoC/Partner search | ③ Investment/Partnership | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"}]},{"name":"植田 遥","company":"Greenway Grid Global","role":"—","type":"Other","interests":"③ Investment/Partnership","matches":[{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ③; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ③; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":65,"reason":"Complementary interests; Shared: ③; Diverse roles"}]},{"name":"JUN ETO","company":"JRE VENTURES","role":"Managing Director","type":"Executive","interests":"⑤ Future reference","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"Too Jun Lin","company":"Flo Energy","role":"Renewables Development Lead","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"Tan Szue Hann","company":"Keppel Ltd","role":"Director, ESG Strategy","score":25,"reason":"Shared: ⑤; Diverse roles"}]},{"name":"池西 亮","company":"JSIP","role":"Co-Founder","type":"Executive","interests":"","matches":[{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"Nakamura Takaki","company":"JSIP Pte. Ltd.","role":"Co-Founder, Co-CEO","type":"Executive","interests":"","matches":[{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"Tan Szue Hann","company":"Keppel Ltd","role":"Director, ESG Strategy","type":"Investor","interests":"⑤ Future reference","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"Too Jun Lin","company":"Flo Energy","role":"Renewables Development Lead","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"JUN ETO","company":"JRE VENTURES","role":"Managing Director","score":25,"reason":"Shared: ⑤; Diverse roles"}]},{"name":"Visvalingam Thiagu","company":"LYS Energy Group","role":"COO","type":"Executive","interests":"② PoC/Partner search | ③ Investment/Partnership","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ②,③; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ②,③; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ②,③; Diverse roles"}]},{"name":"Lim Xuan Hong","company":"Maritime & Port Authority Singapore","role":"Deputy Director","type":"Sustainability","interests":"① Implementing | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ①,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ①,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ①,④; Diverse roles"}]},{"name":"Kawazoe Takashi","company":"Mars Growth Capital","role":"—","type":"Investor","interests":"④ Info gathering | ⑤ Future reference","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":40,"reason":"Shared: ④,⑤; Diverse roles"},{"name":"Too Jun Lin","company":"Flo Energy","role":"Renewables Development Lead","score":40,"reason":"Shared: ④,⑤; Diverse roles"},{"name":"Lim Finian","company":"Trinasolar","role":"Head of Public Affairs","score":40,"reason":"Shared: ④,⑤; Diverse roles"}]},{"name":"升田 裕章","company":"MAY Planning Pte. Ltd.","role":"COO","type":"Executive","interests":"","matches":[{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"Goh Jess","company":"Mentor Media Ltd","role":"VP, Commercial","type":"BizDev","interests":"④ Info gathering","matches":[{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ④; Diverse roles"}]},{"name":"Yamaguchi Yohei","company":"Murata Electronics Singapore","role":"Business Development","type":"BizDev","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"高橋 悠二","company":"Murata Electronics Singapore (Pte.) Ltd.","role":"General Manager","type":"Executive","interests":"① Implementing | ② PoC/Partner search | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"}]},{"name":"糀谷 耕作","company":"Murata Electronics Singapore (Pte.) Ltd.","role":"Deputy GM","type":"BizDev","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":10,"reason":"Diverse roles"}]},{"name":"伊藤 隆彦","company":"N9 PTE LTD","role":"CEO","type":"Executive","interests":"⑤ Future reference","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"Too Jun Lin","company":"Flo Energy","role":"Renewables Development Lead","score":25,"reason":"Shared: ⑤; Diverse roles"},{"name":"Tan Szue Hann","company":"Keppel Ltd","role":"Director, ESG Strategy","score":25,"reason":"Shared: ⑤; Diverse roles"}]},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","type":"Executive","interests":"① Implementing | ② PoC/Partner search | ③ Investment/Partnership | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":110,"reason":"Complementary interests; Shared: ①,②,③,④; Diverse roles"}]},{"name":"高倉 耕太","company":"Nagase Singapore Pte Ltd","role":"Senior Sales Manager","type":"BizDev","interests":"① Implementing","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"maebashi satoru","company":"ntt docomo asia","role":"CEO","type":"Executive","interests":"⑥ Broad perspective","matches":[{"name":"Wei Liang Ho","company":"EDB","role":"Senior Manager","score":25,"reason":"Shared: ⑥; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ⑥; Diverse roles"},{"name":"Miranda Derek","company":"Oil Major","role":"LNG Freight Trader","score":25,"reason":"Shared: ⑥; Diverse roles"}]},{"name":"goh Sharon","company":"NUS","role":"Lecturer","type":"Technical","interests":"② PoC/Partner search | ④ Info gathering","matches":[{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"高橋 悠二","company":"Murata Electronics Singapore (Pte.) Ltd.","role":"General Manager","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","score":80,"reason":"Complementary interests; Shared: ②,④; Diverse roles"}]},{"name":"木林 隆治","company":"Obayashi Corporation","role":"Regional Manager, APAC","type":"Other","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":10,"reason":"Diverse roles"}]},{"name":"Miranda Derek","company":"Oil Major","role":"LNG Freight Trader","type":"Other","interests":"④ Info gathering | ⑥ Broad perspective","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":40,"reason":"Shared: ④,⑥; Diverse roles"},{"name":"Lim Finian","company":"Trinasolar","role":"Head of Public Affairs","score":30,"reason":"Shared: ④,⑥"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":25,"reason":"Shared: ④; Diverse roles"}]},{"name":"Jahnke Geoffrey","company":"Peak Energy","role":"Chief Operating Officer","type":"Executive","interests":"① Implementing","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Lyn Crystal","company":"Sembcorp / Go Net Zero","role":"Commercial Lead","type":"Sustainability","interests":"① Implementing | ② PoC/Partner search | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"}]},{"name":"Tan Chong Yee","company":"SMU","role":"CFO","type":"Executive","interests":"④ Info gathering","matches":[{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ④; Diverse roles"}]},{"name":"Yip Martin","company":"Standard Chartered","role":"Director, Sustainable Finance","type":"Sustainability","interests":"① Implementing | ② PoC/Partner search | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":95,"reason":"Complementary interests; Shared: ①,②,④; Diverse roles"}]},{"name":". Anthony","company":"Startup","role":"Founder, Software Engineer","type":"Executive","interests":"④ Info gathering","matches":[{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":25,"reason":"Shared: ④; Diverse roles"}]},{"name":"Haturusinha Nelaka","company":"Striders Global Investment Pte Ltd","role":"Director","type":"Investor","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"}]},{"name":"Seow Caleb","company":"SystemEarth","role":"COO","type":"Executive","interests":"① Implementing","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Fujita Claudia","company":"Taisei Corporation","role":"Senior Research Engineer","type":"Technical","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"}]},{"name":"Chin Geraldine","company":"Temasek Trust","role":"Head, Insights & Impact","type":"Other","interests":"① Implementing","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Wang Sonic","company":"The Coca-Cola Company","role":"Senior Manager, ESG & Climate","type":"Sustainability","interests":"① Implementing","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Yusuke Nakanishi","company":"Tokyo Stock Exchange","role":"Deputy Head of APAC","type":"Other","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":10,"reason":"Diverse roles"}]},{"name":"小林 祐也","company":"Toyota Tsusho Asia Pacific Pte Ltd","role":"Division Head","type":"Sustainability","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"豐田 一如","company":"DBJ Singapore Limited","role":"Joint General Mananger","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"}]},{"name":"Lim Finian","company":"Trinasolar","role":"Head of Public Affairs, APAC/MEA","type":"Other","interests":"① Implementing | ④ Info gathering | ⑤ Future reference | ⑥ Broad perspective","matches":[{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":110,"reason":"Complementary interests; Shared: ①,④,⑤,⑥; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ①,④; Diverse roles"},{"name":"高橋 悠二","company":"Murata Electronics Singapore (Pte.) Ltd.","role":"General Manager","score":80,"reason":"Complementary interests; Shared: ①,④; Diverse roles"}]},{"name":"Hong Mac","company":"Wavemaker Partners","role":"Principal","type":"Other","interests":"④ Info gathering","matches":[{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":25,"reason":"Shared: ④; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":25,"reason":"Shared: ④; Diverse roles"}]},{"name":"Lim Hui Yi","company":"WWF","role":"—","type":"Sustainability","interests":"① Implementing","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":65,"reason":"Complementary interests; Shared: ①; Diverse roles"}]},{"name":"Li Yingying","company":"Yingfluence","role":"—","type":"Executive","interests":"① Implementing | ③ Investment/Partnership | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ①,③,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ①,③,④; Diverse roles"},{"name":"村中　 健太","company":"Greenway Grid Global","role":"Manager","score":95,"reason":"Complementary interests; Shared: ①,③,④; Diverse roles"}]},{"name":"安河内 舜","company":"株式会社Fusic","role":"—","type":"Other","interests":"","matches":[{"name":"Lim Jonathan","company":"Asia Venture Partners","role":"Managing Partner","score":10,"reason":"Diverse roles"},{"name":"Choo Edmund","company":"ecoWise Holdings Ltd.","role":"Business Development Director","score":10,"reason":"Diverse roles"},{"name":"林 慶一郎","company":"EMAS SUPPLIES & SERVICES","role":"Managing Director","score":10,"reason":"Diverse roles"}]},{"name":"鈴木 伸太郎","company":"小林クリエイト","role":"ダイレクター","type":"Other","interests":"② PoC/Partner search | ③ Investment/Partnership | ④ Info gathering","matches":[{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":95,"reason":"Complementary interests; Shared: ②,③,④; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":95,"reason":"Complementary interests; Shared: ②,③,④; Diverse roles"},{"name":"Masui Yusuke","company":"Nagase Singapore PTE LTD","role":"COO","score":95,"reason":"Complementary interests; Shared: ②,③,④; Diverse roles"}]},{"name":"田中 拓也","company":"大成建設株式会社","role":"チームリーダー","type":"Other","interests":"① Implementing | ③ Investment/Partnership","matches":[{"name":"Borisov Stanislav","company":"Energy Capital Global","role":"CEO","score":80,"reason":"Complementary interests; Shared: ①,③; Diverse roles"},{"name":"Leong Hendy","company":"FedEx","role":"Principal Business Architect","score":80,"reason":"Complementary interests; Shared: ①,③; Diverse roles"},{"name":"Yamamuro Takayuki","company":"Fedex","role":"Solutions Architect","score":80,"reason":"Complementary interests; Shared: ①,③; Diverse roles"}]}];
+
+function scoreClass(s) {
+  if (s >= 60) return 'score-high';
+  if (s >= 30) return 'score-med';
+  return 'score-low';
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+}
+
+function renderCards(data) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  if (!data.length) {
+    grid.innerHTML = '<div class="empty">No attendees found.</div>';
+    return;
+  }
+  data.forEach((p, i) => {
+    const tags = p.interests ? p.interests.split('|').map(t => t.trim()).filter(Boolean) : [];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.animationDelay = (i * 0.03) + 's';
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-name">${p.name}</div>
+        <div class="card-company">${p.company}</div>
+        <div class="card-role">${p.role || '—'}</div>
+      </div>
+      <div class="card-tags">
+        <span class="tag type-tag">${p.type}</span>
+        ${tags.map(t => `<span class="tag">${t.charAt(0)}</span>`).join('')}
+      </div>
+      <div class="card-matches">
+        <div class="matches-label">Top matches</div>
+        ${p.matches.map((m, idx) => `
+          <div class="match-row">
+            <div class="match-rank">${idx+1}</div>
+            <div class="match-info">
+              <div class="match-name">${m.name}</div>
+              <div class="match-co">${m.company}</div>
+            </div>
+            <span class="match-score ${scoreClass(m.score)}">${m.score}</span>
+          </div>
+        `).join('')}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+let currentFilter = 'all';
+let currentSearch = '';
+
+function applyFilters() {
+  let filtered = DATA;
+  if (currentFilter !== 'all') filtered = filtered.filter(p => p.type === currentFilter);
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    filtered = filtered.filter(p =>
+      p.name.toLowerCase().includes(q) || p.company.toLowerCase().includes(q)
+    );
+  }
+  renderCards(filtered);
+}
+
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  applyFilters();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    applyFilters();
+  });
+});
+
+renderCards(DATA);
+</script>
+</body>
+</html>
